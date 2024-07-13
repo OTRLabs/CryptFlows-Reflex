@@ -1,21 +1,14 @@
-"""The main Dashboard App."""
+"""Welcome to Reflex!."""
 
-from rxconfig import config
+# Import all the pages.
+from CryptFlows_Reflex.pages import *
 
 import reflex as rx
 
-from CryptFlows_Reflex.styles import BACKGROUND_COLOR, FONT_FAMILY, THEME, STYLESHEETS
 
-from CryptFlows_Reflex.pages.tools import tools
-from CryptFlows_Reflex.pages.team import team
-from CryptFlows_Reflex.pages.index import index
+class State(rx.State):
+    """Define empty state to allow access to rx.State.router."""
 
-# Create app instance and add index page.
-app = rx.App(
-    theme=THEME,
-    stylesheets=STYLESHEETS,
-)
 
-app.add_page(index, route="/")
-app.add_page(tools, route="/tools")
-app.add_page(team, route="/team")
+# Create the app.
+app = rx.App()

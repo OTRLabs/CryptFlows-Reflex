@@ -1,17 +1,45 @@
-"""The style classes and constants for the Dashboard App."""
+"""Styles for the app."""
 
-from reflex.components.radix import themes as rx
+import reflex as rx
 
-THEME = rx.theme(
-    appearance="light",
-    has_background=True,
-    radius="large",
-    accent_color="iris",
-    scaling="100%",
-    panel_background="solid",
-)
+border_radius = "0.375rem"
+border = f"1px solid {rx.color('gray', 6)}"
+text_color = rx.color("gray", 11)
+accent_text_color = rx.color("accent", 10)
+accent_color = rx.color("accent", 1)
+hover_accent_color = {"_hover": {"color": accent_text_color}}
+hover_accent_bg = {"_hover": {"background_color": accent_color}}
+content_width_vw = "90vw"
+sidebar_width = "20em"
 
-STYLESHEETS = ["https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap"]
+template_page_style = {"padding_top": "5em", "padding_x": ["auto", "2em"], "flex": "1"}
 
-FONT_FAMILY = "Share Tech Mono"
-BACKGROUND_COLOR = "var(--accent-2)"
+template_content_style = {
+    "border_radius": border_radius,
+    "padding": "1em",
+    "margin_bottom": "2em",
+    "min_height": "90vh",
+}
+
+link_style = {
+    "color": accent_text_color,
+    "text_decoration": "none",
+    **hover_accent_color,
+}
+
+overlapping_button_style = {
+    "background_color": "white",
+    "border_radius": border_radius,
+}
+
+markdown_style = {
+    "code": lambda text: rx.code(text, color_scheme="gray"),
+    "codeblock": lambda text, **props: rx.code_block(text, **props, margin_y="1em"),
+    "a": lambda text, **props: rx.link(
+        text,
+        **props,
+        font_weight="bold",
+        text_decoration="underline",
+        text_decoration_color=accent_text_color,
+    ),
+}
