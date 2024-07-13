@@ -1,2 +1,3 @@
-# CryptFlows-Reflex
-Rewrite of CryptFlows using Reflex pure python web apps
+# Dashboard Template
+
+This is a Reflex starter template for a dashboard app.
