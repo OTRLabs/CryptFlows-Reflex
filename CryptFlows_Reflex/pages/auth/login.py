@@ -2,7 +2,7 @@
 import reflex as rx
 
 from CryptFlows_Reflex.database.db_models import User
-
+from ...templates import template
 class LoginState(rx.State):
     email: str
     password: str
@@ -16,7 +16,7 @@ class LoginState(rx.State):
                 return False
             
     
-
+@template(route="/auth/login", title="Login")
 def login_default_icons() -> rx.Component:
     return rx.card(
         rx.vstack(

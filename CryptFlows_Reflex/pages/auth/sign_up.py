@@ -2,7 +2,7 @@
 
 import reflex as rx
 from CryptFlows_Reflex.database.db_models import User
-
+from ...templates import template
 class SignUpState(rx.State):
     email: str
     password: str
@@ -26,7 +26,7 @@ class SignUpState(rx.State):
                 self.add_user_to_db()
                 return True
 
-
+@template(route="/auth/signup", title="Sign up")
 def signup_default_icons() -> rx.Component:
     return rx.card(
         rx.vstack(
