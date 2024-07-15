@@ -5,8 +5,8 @@ from sqlmodel import Field, Relationship, SQLModel
 from typing import Optional, List
 from datetime import datetime
 from sqlmodel import Field, Relationship, SQLModel
-
-class User(SQLModel, table=True):
+import reflex as rx
+class User(rx.Model, table=True):
     """A user of the app."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -18,7 +18,7 @@ class User(SQLModel, table=True):
     organizations: List["Organization"] = Relationship(back_populates="users")
     teams: List["Team"] = Relationship(back_populates="members")
 
-class Organization(SQLModel, table=True):
+class Organization(rx.Model, table=True):
     """An organization that can have multiple users and projects."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -31,7 +31,7 @@ class Organization(SQLModel, table=True):
     projects: List["Project"] = Relationship(back_populates="organization")
     teams: List["Team"] = Relationship(back_populates="organization")
 
-class Team(SQLModel, table=True):
+class Team(rx.Model, table=True):
     """A team within an organization that can work on projects."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -43,21 +43,21 @@ class Team(SQLModel, table=True):
     members: List[User] = Relationship(back_populates="teams", link_model="UserTeam")
     projects: List["Project"] = Relationship(back_populates="team")
 
-class UserOrganization(SQLModel, table=True):
+class UserOrganization(rx.Model, table=True):
     """Association table for User-Organization many-to-many relationship."""
 
     user_id: int = Field(foreign_key="user.id", primary_key=True)
     organization_id: int = Field(foreign_key="organization.id", primary_key=True)
     role: str = Field(max_length=50, default="member")
 
-class UserTeam(SQLModel, table=True):
+class UserTeam(rx.Model, table=True):
     """Association table for User-Team many-to-many relationship."""
 
     user_id: int = Field(foreign_key="user.id", primary_key=True)
     team_id: int = Field(foreign_key="team.id", primary_key=True)
     role: str = Field(max_length=50, default="member")
 
-class Project(SQLModel, table=True):
+class Project(rx.Model, table=True):
     """A project associated with an organization and optionally a team."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -74,7 +74,7 @@ class Project(SQLModel, table=True):
     tasks: List["Task"] = Relationship(back_populates="project")
 
 # ... (Target, Scope, and Task models remain the same)
-class Target(SQLModel, table=True):
+class Target(rx.Model, table=True):
     """A target associated with a scope."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -86,7 +86,7 @@ class Target(SQLModel, table=True):
     scope: "Scope" = Relationship(back_populates="targets")
     tasks: List["Task"] = Relationship(back_populates="target")
 
-class Scope(SQLModel, table=True):
+class Scope(rx.Model, table=True):
     """A scope associated with a project, containing targets."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -98,7 +98,7 @@ class Scope(SQLModel, table=True):
     targets: List[Target] = Relationship(back_populates="scope")
     tasks: List["Task"] = Relationship(back_populates="scope")
 
-class Task(SQLModel, table=True):
+class Task(rx.Model, table=True):
     """A task that is part of a project, optionally associated with scopes and targets."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
