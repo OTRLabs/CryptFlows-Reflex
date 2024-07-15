@@ -1,94 +1,114 @@
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime
+from sqlmodel import Field, Relationship, SQLModel
 
-from sqlmodel import Field
+from typing import Optional, List
+from datetime import datetime
+from sqlmodel import Field, Relationship, SQLModel
 
-import reflex as rx
-
-
-class User(rx.Model, table=True):
-    """A user of the app.
-
-    Attributes:
-        id: The unique ID of the user. This is an auto-incrementing integer.
-        username: The username of the user.
-        email: The email of the user.
-        password_hash: The hashed password of the user.
-    """
+class User(SQLModel, table=True):
+    """A user of the app."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    username: str = Field(nullable=False)
-    email: str = Field(nullable=False)
-    password_hash: str = Field(nullable=False)
-    
-class Project(rx.Model, table=True):
-    """A project that is associated with a user.
+    username: str = Field(index=True, unique=True, max_length=50)
+    email: str = Field(index=True, unique=True, max_length=100)
+    password_hash: str = Field(max_length=255)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    projects: List["Project"] = Relationship(back_populates="user")
+    organizations: List["Organization"] = Relationship(back_populates="users")
+    teams: List["Team"] = Relationship(back_populates="members")
 
-    Attributes:
-        id: The unique ID of the project. This is an auto-incrementing integer.
-        name: The name of the project.
-        description: The description of the project.
-        user_id: The ID of the user that the project belongs to.
-    """
+class Organization(SQLModel, table=True):
+    """An organization that can have multiple users and projects."""
 
-    id: int = Field(default=None, primary_key=True)
-    name: str = Field(nullable=False)
-    description: str = Field(nullable=False)
-    user_id: int = Field(nullable=False)
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True, unique=True, max_length=100)
+    description: str = Field(max_length=500)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    owner_id: int = Field(foreign_key="user.id")
+    owner: User = Relationship(back_populates="owned_organizations", sa_relationship_kwargs={"foreign_keys": "[Organization.owner_id]"})
+    users: List[User] = Relationship(back_populates="organizations", link_model="UserOrganization")
+    projects: List["Project"] = Relationship(back_populates="organization")
+    teams: List["Team"] = Relationship(back_populates="organization")
 
+class Team(SQLModel, table=True):
+    """A team within an organization that can work on projects."""
 
-class Target(rx.Model, table=True):
-    """A target that is associated with a project by being in the projects scope.
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True, max_length=100)
+    description: str = Field(max_length=500)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    organization_id: int = Field(foreign_key="organization.id")
+    organization: Organization = Relationship(back_populates="teams")
+    members: List[User] = Relationship(back_populates="teams", link_model="UserTeam")
+    projects: List["Project"] = Relationship(back_populates="team")
 
-    Attributes:
-        id: The unique ID of the target. This is an auto-incrementing integer.
-        name: The name of the target.
-        description: The description of the target.
-        project_id: The ID of the project that the target belongs to.
-    """
+class UserOrganization(SQLModel, table=True):
+    """Association table for User-Organization many-to-many relationship."""
 
-    id: int = Field(default=None, primary_key=True)
-    
+    user_id: int = Field(foreign_key="user.id", primary_key=True)
+    organization_id: int = Field(foreign_key="organization.id", primary_key=True)
+    role: str = Field(max_length=50, default="member")
 
-class Scope(rx.Model, table=True):
-    """A scope that is associated with a project by containing targets.
+class UserTeam(SQLModel, table=True):
+    """Association table for User-Team many-to-many relationship."""
 
-    Attributes:
-        id (int): The unique ID of the scope. This is an auto-incrementing integer.
-        name (str): The name of the scope.
-        description (str): The description of the scope.
-        project_id (int): The ID of the project that the scope belongs to.
-        target (Target): The target that is associated with the scope.
+    user_id: int = Field(foreign_key="user.id", primary_key=True)
+    team_id: int = Field(foreign_key="team.id", primary_key=True)
+    role: str = Field(max_length=50, default="member")
 
-    Returns:
-        Scope: The created scope object.
-    """
+class Project(SQLModel, table=True):
+    """A project associated with an organization and optionally a team."""
 
-    id: int = Field(default=None, primary_key=True)
-    name: str = Field(nullable=False)
-    description: str = Field(nullable=False)
-    project_id: int = Field(nullable=False)
-    target: 'Target' = Field(nullable=False)
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True, max_length=100)
+    description: str = Field(max_length=500)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    organization_id: int = Field(foreign_key="organization.id")
+    organization: Organization = Relationship(back_populates="projects")
+    team_id: Optional[int] = Field(foreign_key="team.id")
+    team: Optional[Team] = Relationship(back_populates="projects")
+    user_id: int = Field(foreign_key="user.id")
+    user: User = Relationship(back_populates="projects")
+    scopes: List["Scope"] = Relationship(back_populates="project")
+    tasks: List["Task"] = Relationship(back_populates="project")
 
+# ... (Target, Scope, and Task models remain the same)
+class Target(SQLModel, table=True):
+    """A target associated with a scope."""
 
-class Task(rx.Model, table=True):
-    """A task that is a part of a project. Tasks can be associated with scopes, and targets, but it is not required.
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True, max_length=100)
+    description: str = Field(max_length=500)
+    ip_address: Optional[str] = Field(max_length=45)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    scope_id: int = Field(foreign_key="scope.id")
+    scope: "Scope" = Relationship(back_populates="targets")
+    tasks: List["Task"] = Relationship(back_populates="target")
 
-    Attributes:
-        id: The unique ID of the task. This is an auto-incrementing integer.
-        name: The name of the task.
-        description: The description of the task.
-        project_id: The ID of the project that the task belongs to.
-        scope_id: The ID of the scope that the task belongs to.
-        target_id: The ID of the target that the task belongs to.
+class Scope(SQLModel, table=True):
+    """A scope associated with a project, containing targets."""
 
-    Returns:
-        Task: The created task object.
-    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True, max_length=100)
+    description: str = Field(max_length=500)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    project_id: int = Field(foreign_key="project.id")
+    project: Project = Relationship(back_populates="scopes")
+    targets: List[Target] = Relationship(back_populates="scope")
+    tasks: List["Task"] = Relationship(back_populates="scope")
 
-    id: int = Field(default=None, primary_key=True)
-    name: str = Field(nullable=False)
-    description: str = Field(nullable=False)
-    project_id: int = Field(nullable=False)
-    scope_id: int = Field(nullable=False)
-    target_id: int = Field(nullable=False)
-    
+class Task(SQLModel, table=True):
+    """A task that is part of a project, optionally associated with scopes and targets."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True, max_length=100)
+    description: str = Field(max_length=500)
+    status: str = Field(max_length=20, default="Pending")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    project_id: int = Field(foreign_key="project.id")
+    project: Project = Relationship(back_populates="tasks")
+    scope_id: Optional[int] = Field(foreign_key="scope.id")
+    scope: Optional[Scope] = Relationship(back_populates="tasks")
+    target_id: Optional[int] = Field(foreign_key="target.id")
+    target: Optional[Target] = Relationship(back_populates="tasks")
