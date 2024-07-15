@@ -8,3 +8,5 @@ __pycache__/
 .venv/lib
 .venv/lib64
 .venv/pyvenv.cfg
+GPT
+GPT/prompts
