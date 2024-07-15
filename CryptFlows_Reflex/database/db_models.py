@@ -69,23 +69,26 @@ class Scope(rx.Model, table=True):
     project_id: int = Field(nullable=False)
     target: 'Target' = Field(nullable=False)
 
-    @classmethod
-    def create(cls, name: str, description: str, project_id: int, target_id: int) -> 'Scope':
-        """Create a new scope.
 
-        Args:
-            name (str): The name of the scope.
-            description (str): The description of the scope.
-            project_id (int): The ID of the project that the scope belongs to.
-            target_id (int): The ID of the target that is associated with the scope.
+class Task(rx.Model, table=True):
+    """A task that is a part of a project. Tasks can be associated with scopes, and targets, but it is not required.
 
-        Returns:
-            Scope: The created scope object.
-        """
-        return cls.insert(
-            name=name,
-            description=description,
-            project_id=project_id,
-            target_id=target_id,
-        )
+    Attributes:
+        id: The unique ID of the task. This is an auto-incrementing integer.
+        name: The name of the task.
+        description: The description of the task.
+        project_id: The ID of the project that the task belongs to.
+        scope_id: The ID of the scope that the task belongs to.
+        target_id: The ID of the target that the task belongs to.
 
+    Returns:
+        Task: The created task object.
+    """
+
+    id: int = Field(default=None, primary_key=True)
+    name: str = Field(nullable=False)
+    description: str = Field(nullable=False)
+    project_id: int = Field(nullable=False)
+    scope_id: int = Field(nullable=False)
+    target_id: int = Field(nullable=False)
+    
